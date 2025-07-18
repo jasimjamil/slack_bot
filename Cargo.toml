@@ -1,0 +1,54 @@
+[package]
+name = "slack-attendance-backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web Framework
+actix-web = "4.5.1"
+
+# Database
+sqlx = { version = "0.7.3", features = ["runtime-tokio", "mysql"] }
+tokio = { version = "1.36.0", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.114"
+
+# Authentication
+jsonwebtoken = "9.2.0"
+bcrypt = "0.10.1"
+
+# Slack & HTTP
+reqwest = { version = "0.11.24", features = ["json"] }
+
+# Environment
+dotenv = "0.15.0"
+
+# Email
+lettre = "0.11.7"
+
+# Scheduling
+cron = "0.12.1"
+
+# Logging
+log = "0.4.20"
+env_logger = "0.10.2"
+
+# Error Handling
+thiserror = "1.0.58"
+hmac = "0.12.1"
+sha2 = "0.10.9"
+hex = "0.4.3"
+
+[dev-dependencies]
+mockall = "0.12.1"
+tokio = { version = "1.36.0", features = ["full", "test-util"] }
+actix-web-httpauth = "0.8.1"
+reqwest = { version = "0.11.24", features = ["json"] }
+serde_json = "1.0.114"
+anyhow = "1.0.81"
+
+[[test]]
+name = "integration_tests"
+path = "tests/integration_tests.rs"

@@ -1,0 +1,81 @@
+{
+"info": {
+"_postman_id": "slack-attendance-backend",
+"name": "Slack Attendance Backend",
+"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+},
+"item": [
+{
+"name": "Register User",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Content-Type",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "raw",
+"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"securepassword123\",\n    \"role\": \"Employee\"\n}"
+{
+"http://localhost:8080/register",
+"http",
+["localhost"],
+"8080",
+["register"]
+ame": "Login User",
+uest": {
+"POST",
+[
+": "Content-Type",
+"application/json"
+": {
+"raw",
+"{\n    \"email\": \"john@example.com\",\n    \"password\": \"securepassword123\"\n}"
+{
+"http://localhost:8080/login",
+"http",
+["localhost"],
+"8080",
+["login"]
+ame": "Get Attendance",
+uest": {
+"GET",
+[
+": "Authorization",
+"Bearer YOUR_JWT_TOKEN"
+{
+"http://localhost:8080/attendance",
+"http",
+["localhost"],
+"8080",
+["attendance"]
+ame": "Get Monthly Summary",
+uest": {
+"GET",
+[
+": "Authorization",
+"Bearer YOUR_JWT_TOKEN"
+{
+"http://localhost:8080/dashboard/summary",
+"http",
+["localhost"],
+"8080",
+["dashboard", "summary"]
+ame": "Slack Event Webhook",
+uest": {
+"POST",
+[
+": "Content-Type",
+"application/json"
+": {
+"raw",
+"{\n    \"type\": \"event_callback\",\n    \"event\": {\n        \"type\": \"message\",\n        \"channel\": \"#daily-standup\",\n        \"text\": \"Yesterday: Worked on backend\\nToday: Implementing tests\\nBlockers: None\"\n    }\n}"
+{
+"http://localhost:8080/slack/events",
+"http",
+["localhost"],
+"8080",
+["slack", "events"]
+}
