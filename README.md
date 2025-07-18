@@ -1,4 +1,4 @@
-# Slack Standup Attendance Automation System 🤖📅
+# Slack Standup Attendance Backend 🤖📅
 
 ## 🚀 Project Overview
 
@@ -6,21 +6,20 @@ A robust Rust backend for automating daily standup attendance tracking via Slack
 
 ## 🛠 Tech Stack
 
+- **Language**: Rust
 - **Web Framework**: Actix Web
-- **Database**: PostgreSQL + SQLx
-- **Async Runtime**: Tokio
+- **Database**: MySQL + SQLx
 - **Authentication**: JWT, Bcrypt
+- **Async Runtime**: Tokio
 - **Serialization**: Serde
-- **Email**: Lettre
-- **Scheduling**: Cron
 
-## 📦 Features
+## ✨ Features
 
 - 🔐 Secure JWT-based authentication
 - 🤖 Slack webhook event processing
 - 📊 Attendance tracking
 - 🔍 Role-Based Access Control (RBAC)
-- 📧 Automated email notifications
+- 📧 Automated notifications
 - 📈 Monthly reporting system
 
 ## 🏗 Project Structure
@@ -33,6 +32,8 @@ slack-attendance-backend/
 │   ├── db/             # Database models & queries
 │   ├── services/       # Business logic services
 │   └── utils/          # Utility functions
+├── migrations/         # Database migration scripts
+├── tests/              # Integration tests
 ├── .env                # Environment configuration
 └── Cargo.toml          # Dependency management
 ```
@@ -42,30 +43,29 @@ slack-attendance-backend/
 ### Prerequisites
 
 - Rust (stable)
-- PostgreSQL
+- MySQL
 - Slack App Credentials
-- SMTP Server for Email
 
 ### Installation
 
 1. Clone the repository
 2. Copy `.env.example` to `.env` and configure
-3. `cargo build`
-4. `cargo run`
+3. Install SQLx CLI: `cargo install sqlx-cli --no-default-features --features mysql`
+4. Run migrations: `sqlx migrate run`
+5. `cargo build`
+6. `cargo run`
 
 ## 🔐 Environment Variables
 
-- `DATABASE_URL`: PostgreSQL connection string
+- `DATABASE_URL`: MySQL connection string
 - `SLACK_SIGNING_SECRET`: Slack webhook verification
 - `JWT_SECRET`: Token signing secret
-- `SMTP_USERNAME`: Email service credentials
-- `SMTP_PASSWORD`: Email service credentials
 
 ## 🧪 Testing
 
 - `cargo test`: Run unit tests
-- `cargo clippy`: Lint checks
-- `cargo fmt`: Code formatting
+- `./test_backend.sh`: Run comprehensive backend tests
+- `./run_tests.sh`: Full test suite
 
 ## 🤝 Contributing
 
@@ -77,8 +77,8 @@ slack-attendance-backend/
 
 ## 📄 License
 
-[Your License Here]
+[Specify your license]
 
 ## 📞 Contact
 
-[Your Contact Information] 
+[Your contact information] 
