@@ -2,34 +2,42 @@
 name = "slack-attendance-backend"
 version = "0.1.0"
 edition = "2021"
+authors = ["Muhammad <muhammad@example.com>"]
+description = "Slack Standup Attendance Tracking Backend"
+
+# Specify library and binary targets
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "slack-attendance-backend"
+path = "src/main.rs"
 
 [dependencies]
 # Web Framework
 actix-web = "4.5.1"
 
 # Database
-sqlx = { version = "0.7.3", features = ["runtime-tokio", "mysql"] }
+sqlx = { version = "0.7.3", features = ["runtime-tokio", "mysql", "chrono"] }
 tokio = { version = "1.36.0", features = ["full"] }
 
 # Serialization
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
+chrono = { version = "0.4", features = ["serde"] }
+
+# Slack & HTTP
+reqwest = { version = "0.11.24", features = ["json", "rustls-tls"] }
+
+# Protobuf (Optional, only if you're using it)
+protobuf = "2.27"
 
 # Authentication
 jsonwebtoken = "9.2.0"
 bcrypt = "0.10.1"
 
-# Slack & HTTP
-reqwest = { version = "0.11.24", features = ["json"] }
-
-# Environment
+# Environment and Configuration
 dotenv = "0.15.0"
-
-# Email
-lettre = "0.11.7"
-
-# Scheduling
-cron = "0.12.1"
 
 # Logging
 log = "0.4.20"
@@ -37,18 +45,35 @@ env_logger = "0.10.2"
 
 # Error Handling
 thiserror = "1.0.58"
+anyhow = "1.0.81"
+
+# Cryptography
 hmac = "0.12.1"
 sha2 = "0.10.9"
 hex = "0.4.3"
 
-[dev-dependencies]
-mockall = "0.12.1"
-tokio = { version = "1.36.0", features = ["full", "test-util"] }
-actix-web-httpauth = "0.8.1"
-reqwest = { version = "0.11.24", features = ["json"] }
-serde_json = "1.0.114"
-anyhow = "1.0.81"
+# Local internal crates (⚠️ Only include if you have `auth` and `report` crates in your workspace)
+# If they are not real internal crates, remove the lines below.
+# Otherwise, point to the correct paths using `path = "..."` if they are local modules.
+# Example:
+# auth = { path = "crates/auth" }
+# report = { path = "crates/report" }
 
-[[test]]
-name = "integration_tests"
-path = "tests/integration_tests.rs"
+# Commented for now (remove or fix if used)
+# auth = "0.1.0"
+# report = "1.0.0"
+
+[dev-dependencies]
+# Testing
+mockall = "0.12.1"
+actix-web-httpauth = "0.8.1"
+
+# Optional features
+[features]
+default = []
+# "reqwest/json" is already included in `reqwest` via its own features — no need to list again
+full = ["sqlx/mysql"]
+
+# Workspace configuration (optional, for larger projects)
+[workspace]
+members = ["."]

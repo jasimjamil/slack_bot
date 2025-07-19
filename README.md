@@ -28,12 +28,13 @@ A robust Rust backend for automating daily standup attendance tracking via Slack
 slack-attendance-backend/
 ├── src/
 │   ├── main.rs         # Application entry point
+│   ├── lib.rs          # Library configuration
 │   ├── routes/         # HTTP route handlers
 │   ├── db/             # Database models & queries
 │   ├── services/       # Business logic services
 │   └── utils/          # Utility functions
-├── migrations/         # Database migration scripts
 ├── tests/              # Integration tests
+├── migrations/         # Database migration scripts
 ├── .env                # Environment configuration
 └── Cargo.toml          # Dependency management
 ```
@@ -49,23 +50,27 @@ slack-attendance-backend/
 ### Installation
 
 1. Clone the repository
-2. Copy `.env.example` to `.env` and configure
+2. Install Rust: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 3. Install SQLx CLI: `cargo install sqlx-cli --no-default-features --features mysql`
-4. Run migrations: `sqlx migrate run`
-5. `cargo build`
-6. `cargo run`
+4. Copy `.env.example` to `.env` and configure
+5. Set up MySQL database
+6. Run migrations: `sqlx migrate run`
+7. `cargo build`
+8. `cargo run`
 
 ## 🔐 Environment Variables
 
 - `DATABASE_URL`: MySQL connection string
+- `SLACK_BOT_TOKEN`: Slack Bot OAuth Token
 - `SLACK_SIGNING_SECRET`: Slack webhook verification
 - `JWT_SECRET`: Token signing secret
 
 ## 🧪 Testing
 
+- `./run_tests.sh`: Run comprehensive test suite
 - `cargo test`: Run unit tests
-- `./test_backend.sh`: Run comprehensive backend tests
-- `./run_tests.sh`: Full test suite
+- `cargo clippy`: Lint checks
+- `cargo fmt`: Code formatting
 
 ## 🤝 Contributing
 

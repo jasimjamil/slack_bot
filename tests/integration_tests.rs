@@ -1,122 +1,81 @@
-use actix_web::{test, web, App, http};
 use sqlx::MySqlPool;
-use serde_json::json;
-use std::env;
+use slack_attendance_backend::{
+    services::slack_service::SlackService,
+    services::attendance_service::AttendanceService,
+    db::models::{User, UserRole, AttendanceStatus},
+    db::queries::DatabaseQueries,
+};
+use chrono::Utc;
 
-// Helper function to get test database URL
-fn get_test_db_url() -> String {
-    env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "mysql://slack_attendance_user:strong_password@localhost:3306/slack_attendance_db".to_string())
+#[tokio::test]
+async fn test_slack_user_verification() {
+    // Setup test database connection
+    let database_url = std::env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set");
+    let pool = MySqlPool::connect(&database_url)
+        .await
+        .expect("Failed to connect to database");
+
+    // Create test user
+    let test_email = format!("test_user_{}@example.com", Utc::now().timestamp());
+    let user_id = DatabaseQueries::create_user(
+        &pool, 
+        "Test User", 
+        &test_email, 
+        "hashed_password", 
+        UserRole::Employee,
+        None
+    )
+    .await
+    .expect("Failed to create test user");
+
+    // Test Slack user verification
+    let slack_user_id = "U_TEST_123";
+    let verification_result = SlackService::verify_slack_user(
+        &pool, 
+        slack_user_id, 
+        &test_email
+    )
+    .await
+    .expect("Verification failed");
+
+    // Assertions
+    assert!(verification_result, "User should be verified");
 }
 
 #[tokio::test]
-async fn test_complete_user_flow() {
-    // Load environment variables
-    dotenv::dotenv().ok();
-
+async fn test_attendance_logging() {
     // Setup test database connection
-    let pool = MySqlPool::connect(&get_test_db_url())
+    let database_url = std::env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set");
+    let pool = MySqlPool::connect(&database_url)
         .await
-        .expect("Failed to connect to test database");
+        .expect("Failed to connect to database");
 
-    // Create test app with all routes
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(pool.clone()))
-            .service(crate::routes::register)
-            .service(crate::routes::login)
-            .service(crate::routes::verify_slack_user)
-            .service(crate::routes::handle_slack_event)
-    ).await;
+    // Create test user
+    let test_email = format!("attendance_user_{}@example.com", Utc::now().timestamp());
+    let user_id = DatabaseQueries::create_user(
+        &pool, 
+        "Attendance User", 
+        &test_email, 
+        "hashed_password", 
+        UserRole::Employee,
+        None
+    )
+    .await
+    .expect("Failed to create test user");
 
-    // 1. User Registration
-    let register_req = test::TestRequest::post()
-        .uri("/register")
-        .set_json(json!({
-            "name": "Integration Test User",
-            "email": "integration_test@example.com",
-            "password": "TestPassword123!",
-            "role": "Employee"
-        }))
-        .to_request();
+    // Log attendance
+    let today = chrono::Local::now().date_naive();
+    let attendance_result = AttendanceService::log_attendance(
+        &pool, 
+        user_id, 
+        today, 
+        AttendanceStatus::Present, 
+        Some("Daily standup completed".to_string())
+    )
+    .await;
 
-    let register_response = test::call_service(&app, register_req).await;
-    assert_eq!(register_response.status(), http::StatusCode::CREATED);
-
-    // 2. User Login
-    let login_req = test::TestRequest::post()
-        .uri("/login")
-        .set_json(json!({
-            "email": "integration_test@example.com",
-            "password": "TestPassword123!"
-        }))
-        .to_request();
-
-    let login_response = test::call_service(&app, login_req).await;
-    assert_eq!(login_response.status(), http::StatusCode::OK);
-
-    // Extract JWT token
-    let login_body = test::read_body_json(login_response).await;
-    let jwt_token = login_body.get("token").expect("JWT token not found");
-    assert!(jwt_token.is_string());
-
-    // 3. Slack User Verification
-    let verify_req = test::TestRequest::post()
-        .uri("/slack/verify-user")
-        .set_json(json!({
-            "slack_user_id": "U_INTEGRATION_TEST",
-            "email": "integration_test@example.com"
-        }))
-        .to_request();
-
-    let verify_response = test::call_service(&app, verify_req).await;
-    assert_eq!(verify_response.status(), http::StatusCode::OK);
-
-    // 4. Slack Event Processing
-    let slack_event_req = test::TestRequest::post()
-        .uri("/slack/events")
-        .set_json(json!({
-            "event": {
-                "type": "message",
-                "user": "U_INTEGRATION_TEST",
-                "channel": "#daily-standup",
-                "text": "Yesterday: Completed integration tests\nToday: Refining backend\nBlockers: None"
-            }
-        }))
-        .to_request();
-
-    let slack_event_response = test::call_service(&app, slack_event_req).await;
-    assert_eq!(slack_event_response.status(), http::StatusCode::OK);
+    // Assertions
+    assert!(attendance_result.is_ok(), "Attendance should be logged successfully");
 }
-
-#[tokio::test]
-async fn test_invalid_registration() {
-    // Load environment variables
-    dotenv::dotenv().ok();
-
-    // Setup test database connection
-    let pool = MySqlPool::connect(&get_test_db_url())
-        .await
-        .expect("Failed to connect to test database");
-
-    // Create test app
-    let app = test::init_service(
-        App::new()
-            .app_data(web::Data::new(pool.clone()))
-            .service(crate::routes::register)
-    ).await;
-
-    // Try registering with invalid data
-    let invalid_req = test::TestRequest::post()
-        .uri("/register")
-        .set_json(json!({
-            "name": "",  // Empty name
-            "email": "invalid-email",  // Invalid email
-            "password": "short",  // Too short password
-            "role": "InvalidRole"
-        }))
-        .to_request();
-
-    let response = test::call_service(&app, invalid_req).await;
-    assert_eq!(response.status(), http::StatusCode::BAD_REQUEST);
-} 

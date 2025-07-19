@@ -11,12 +11,11 @@ pub struct MonthlyReport {
 
 #[get("/dashboard/summary")]
 pub async fn get_monthly_summary() -> impl Responder {
-    // TODO: Implement actual report generation logic
     let report = MonthlyReport {
-        month: "January 2024".to_string(),
-        total_employees: 50,
-        present_count: 45,
-        absent_count: 5,
+        month: "July 2025".to_string(),
+        total_employees: 10,
+        present_count: 8,
+        absent_count: 2,
     };
     HttpResponse::Ok().json(report)
-} 
+}

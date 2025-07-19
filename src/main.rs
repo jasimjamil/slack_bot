@@ -1,44 +1,47 @@
 use actix_web::{web, App, HttpServer};
-use sqlx::mysql::MySqlPool;
+use dotenv::dotenv;
+use sqlx::MySqlPool;
 use std::env;
 
-mod routes;
-mod db;
-mod services;
-mod utils;
+use slack_attendance_backend::routes::{
+    auth::{login, register},
+    attendance::get_attendance,
+    report::get_monthly_summary,
+    slack::handle_slack_event,
+};
 
-#[tokio::main]
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Load environment variables
-    dotenv::dotenv().ok();
+    // Load .env file
+    dotenv().ok();
 
-    // Setup logging
-    env_logger::init();
+    // Read the database URL from .env
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env");
 
-    // Database connection pool
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-    let pool = MySqlPool::connect(&database_url)
+    // Create MySQL connection pool
+    let pool = MySqlPool::connect(&db_url)
         .await
-        .expect("Failed to create database pool");
+        .expect("❌ Failed to connect to MySQL");
 
-    // Start HTTP server
+    // Read server port (optional fallback to 8080)
+    let host = env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".into());
+    let port = env::var("SERVER_PORT")
+        .unwrap_or_else(|_| "8080".to_string())
+        .parse::<u16>()
+        .expect("SERVER_PORT must be a valid u16 number");
+
+    println!("✅ Server listening on http://{}:{}", host, port);
+
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(pool.clone()))
-            // Authentication routes
-            .service(routes::login)
-            .service(routes::register)
-            
-            // Slack routes
-            .service(routes::handle_slack_event)
-            .service(routes::verify_slack_user)
-            
-            // Other routes
-            .service(routes::attendance::get_attendance)
-            .service(routes::report::get_monthly_summary)
+            .app_data(web::Data::new(pool.clone())) // ✅ Pass DB pool to handlers
+            .service(login)
+            .service(register)
+            .service(get_attendance)
+            .service(handle_slack_event)
+            .service(get_monthly_summary)
     })
-    .bind("127.0.0.1:8080")?
+    .bind((host.as_str(), port))?
     .run()
     .await
 }

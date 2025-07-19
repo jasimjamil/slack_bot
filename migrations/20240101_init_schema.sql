@@ -20,6 +20,10 @@ CREATE TABLE users (
     FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
 );
 
+-- Modify Users Table to include Slack User ID
+ALTER TABLE users 
+ADD COLUMN slack_user_id VARCHAR(255) UNIQUE;
+
 -- Create Attendance Status Enum Type
 CREATE TYPE attendance_status AS ENUM ('Present', 'Absent', 'Late');
 

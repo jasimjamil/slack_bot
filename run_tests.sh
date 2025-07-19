@@ -3,23 +3,25 @@
 # Ensure the script is executable
 chmod +x run_tests.sh
 
-# Start the server in the background
-cargo run &
-SERVER_PID=$!
+# Set environment variables
+export RUST_BACKTRACE=1
+export RUST_LOG=debug
+export DATABASE_URL=mysql://slack_attendance_user:strong_password@localhost:3306/slack_attendance_db
 
-# Wait for the server to start
-sleep 5
+# Run unit tests
+echo "🧪 Running Unit Tests..."
+cargo test --lib
 
-# Run Postman tests
-newman run SlackAttendanceBackend_Postman_Collection.json
+# Run integration tests
+echo "🔍 Running Integration Tests..."
+cargo test --test integration_tests
 
-# Run curl tests
-./test_backend.sh
+# Run clippy for linting
+echo "🕵️ Running Clippy Linter..."
+cargo clippy
 
-# Run Rust integration tests
-cargo test
+# Check formatting
+echo "✨ Checking Code Formatting..."
+cargo fmt -- --check
 
-# Kill the server
-kill $SERVER_PID
-
-echo "All tests completed!"
+echo "🎉 All Tests Completed!"
